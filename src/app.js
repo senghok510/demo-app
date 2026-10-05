@@ -1,4 +1,10 @@
-import { createIdea, deleteIdea, filterIdeas, toggleIdea } from "./ideas.js";
+import {
+  createIdea,
+  deleteIdea,
+  filterIdeas,
+  reorderIdeas,
+  toggleIdea,
+} from "./ideas.js";
 
 const storageKey = "idea-board-items";
 const form = document.querySelector("#idea-form");
@@ -15,6 +21,7 @@ const filters = [...document.querySelectorAll(".filter")];
 let ideas = loadIdeas();
 let activeFilter = "all";
 let searchQuery = "";
+let draggedIdeaId = null;
 
 function loadIdeas() {
   try {
@@ -41,6 +48,7 @@ function render() {
     const deleteButton = fragment.querySelector(".delete-button");
 
     card.dataset.id = idea.id;
+    card.draggable = true;
     toggle.checked = idea.done;
     title.textContent = idea.title;
     deleteButton.setAttribute("aria-label", `Delete ${idea.title}`);
@@ -83,6 +91,43 @@ list.addEventListener("click", (event) => {
   ideas = deleteIdea(ideas, event.target.closest(".idea-card").dataset.id);
   saveIdeas();
   render();
+});
+
+list.addEventListener("dragstart", (event) => {
+  const card = event.target.closest(".idea-card");
+  if (!card) return;
+
+  draggedIdeaId = card.dataset.id;
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", draggedIdeaId);
+});
+
+list.addEventListener("dragover", (event) => {
+  if (!event.target.closest(".idea-card")) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+});
+
+list.addEventListener("drop", (event) => {
+  const destination = event.target.closest(".idea-card");
+  if (!destination) return;
+  event.preventDefault();
+
+  const droppedIdeaId =
+    draggedIdeaId || event.dataTransfer.getData("text/plain");
+  const reorderedIdeas = reorderIdeas(ideas, droppedIdeaId, destination.dataset.id);
+
+  if (reorderedIdeas !== ideas) {
+    ideas = reorderedIdeas;
+    saveIdeas();
+    render();
+  }
+
+  draggedIdeaId = null;
+});
+
+list.addEventListener("dragend", () => {
+  draggedIdeaId = null;
 });
 
 for (const filter of filters) {
