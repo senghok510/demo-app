@@ -8,10 +8,13 @@ const list = document.querySelector("#idea-list");
 const template = document.querySelector("#idea-template");
 const count = document.querySelector("#idea-count");
 const emptyState = document.querySelector("#empty-state");
+const searchInput = document.querySelector("#search-input");
+const searchClear = document.querySelector("#search-clear");
 const filters = [...document.querySelectorAll(".filter")];
 
 let ideas = loadIdeas();
 let activeFilter = "all";
+let searchQuery = "";
 
 function loadIdeas() {
   try {
@@ -27,7 +30,7 @@ function saveIdeas() {
 }
 
 function render() {
-  const visibleIdeas = filterIdeas(ideas, activeFilter);
+  const visibleIdeas = filterIdeas(ideas, activeFilter, searchQuery);
   list.replaceChildren();
 
   for (const idea of visibleIdeas) {
@@ -46,6 +49,10 @@ function render() {
 
   const openCount = ideas.filter((idea) => !idea.done).length;
   count.textContent = `${openCount} open ${openCount === 1 ? "idea" : "ideas"}`;
+  searchClear.hidden = searchQuery.length === 0;
+  emptyState.textContent = searchQuery
+    ? `No ideas match “${searchQuery}”.`
+    : "No ideas in this view yet.";
   emptyState.hidden = visibleIdeas.length > 0;
 }
 
@@ -85,5 +92,17 @@ for (const filter of filters) {
     render();
   });
 }
+
+searchInput.addEventListener("input", () => {
+  searchQuery = searchInput.value;
+  render();
+});
+
+searchClear.addEventListener("click", () => {
+  searchInput.value = "";
+  searchQuery = "";
+  searchInput.focus();
+  render();
+});
 
 render();

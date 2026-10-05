@@ -45,3 +45,26 @@ test("filterIdeas filters open and completed ideas", () => {
   assert.deepEqual(filterIdeas(ideas, "done"), [ideas[1]]);
   assert.deepEqual(filterIdeas(ideas, "all"), ideas);
 });
+
+test("filterIdeas searches titles case-insensitively", () => {
+  const ideas = [
+    { id: "one", title: "Add Keyboard Shortcuts", done: false },
+    { id: "two", title: "Improve mobile layout", done: false },
+  ];
+
+  assert.deepEqual(filterIdeas(ideas, "all", "keyboard"), [ideas[0]]);
+  assert.deepEqual(filterIdeas(ideas, "all", "MOBILE"), [ideas[1]]);
+});
+
+test("filterIdeas combines search with the status filter without changing ideas", () => {
+  const ideas = [
+    { id: "one", title: "Add search", done: false },
+    { id: "two", title: "Test search", done: true },
+    { id: "three", title: "Improve layout", done: false },
+  ];
+  const originalIdeas = structuredClone(ideas);
+
+  assert.deepEqual(filterIdeas(ideas, "open", "search"), [ideas[0]]);
+  assert.deepEqual(filterIdeas(ideas, "done", "search"), [ideas[1]]);
+  assert.deepEqual(ideas, originalIdeas);
+});
