@@ -1,4 +1,10 @@
-import { createIdea, deleteIdea, filterIdeas, toggleIdea } from "./ideas.js";
+import {
+  createIdea,
+  deleteIdea,
+  filterIdeas,
+  reorderIdeas,
+  toggleIdea,
+} from "./ideas.js";
 
 const storageKey = "idea-board-items";
 const form = document.querySelector("#idea-form");
@@ -8,10 +14,14 @@ const list = document.querySelector("#idea-list");
 const template = document.querySelector("#idea-template");
 const count = document.querySelector("#idea-count");
 const emptyState = document.querySelector("#empty-state");
+const searchInput = document.querySelector("#search-input");
+const searchClear = document.querySelector("#search-clear");
 const filters = [...document.querySelectorAll(".filter")];
 
 let ideas = loadIdeas();
 let activeFilter = "all";
+let searchQuery = "";
+let draggedIdeaId = null;
 
 function loadIdeas() {
   try {
@@ -27,7 +37,7 @@ function saveIdeas() {
 }
 
 function render() {
-  const visibleIdeas = filterIdeas(ideas, activeFilter);
+  const visibleIdeas = filterIdeas(ideas, activeFilter, searchQuery);
   list.replaceChildren();
 
   for (const idea of visibleIdeas) {
@@ -38,6 +48,7 @@ function render() {
     const deleteButton = fragment.querySelector(".delete-button");
 
     card.dataset.id = idea.id;
+    card.draggable = true;
     toggle.checked = idea.done;
     title.textContent = idea.title;
     deleteButton.setAttribute("aria-label", `Delete ${idea.title}`);
@@ -46,6 +57,10 @@ function render() {
 
   const openCount = ideas.filter((idea) => !idea.done).length;
   count.textContent = `${openCount} open ${openCount === 1 ? "idea" : "ideas"}`;
+  searchClear.hidden = searchQuery.length === 0;
+  emptyState.textContent = searchQuery
+    ? `No ideas match “${searchQuery}”.`
+    : "No ideas in this view yet.";
   emptyState.hidden = visibleIdeas.length > 0;
 }
 
@@ -78,6 +93,43 @@ list.addEventListener("click", (event) => {
   render();
 });
 
+list.addEventListener("dragstart", (event) => {
+  const card = event.target.closest(".idea-card");
+  if (!card) return;
+
+  draggedIdeaId = card.dataset.id;
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", draggedIdeaId);
+});
+
+list.addEventListener("dragover", (event) => {
+  if (!event.target.closest(".idea-card")) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+});
+
+list.addEventListener("drop", (event) => {
+  const destination = event.target.closest(".idea-card");
+  if (!destination) return;
+  event.preventDefault();
+
+  const droppedIdeaId =
+    draggedIdeaId || event.dataTransfer.getData("text/plain");
+  const reorderedIdeas = reorderIdeas(ideas, droppedIdeaId, destination.dataset.id);
+
+  if (reorderedIdeas !== ideas) {
+    ideas = reorderedIdeas;
+    saveIdeas();
+    render();
+  }
+
+  draggedIdeaId = null;
+});
+
+list.addEventListener("dragend", () => {
+  draggedIdeaId = null;
+});
+
 for (const filter of filters) {
   filter.addEventListener("click", () => {
     activeFilter = filter.dataset.filter;
@@ -85,5 +137,17 @@ for (const filter of filters) {
     render();
   });
 }
+
+searchInput.addEventListener("input", () => {
+  searchQuery = searchInput.value;
+  render();
+});
+
+searchClear.addEventListener("click", () => {
+  searchInput.value = "";
+  searchQuery = "";
+  searchInput.focus();
+  render();
+});
 
 render();

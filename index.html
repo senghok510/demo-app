@@ -46,6 +46,20 @@
           <p id="form-error" class="form-error" role="alert"></p>
         </form>
 
+        <div class="search-field">
+          <label for="search-input">Search ideas</label>
+          <div class="search-input-wrap">
+            <input
+              id="search-input"
+              type="search"
+              placeholder="Search by title…"
+              autocomplete="off"
+              aria-controls="idea-list"
+            />
+            <button id="search-clear" class="search-clear" type="button" hidden>Clear</button>
+          </div>
+        </div>
+
         <div class="toolbar" aria-label="Filter ideas">
           <button class="filter is-active" type="button" data-filter="all">All</button>
           <button class="filter" type="button" data-filter="open">Open</button>

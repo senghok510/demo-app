@@ -154,6 +154,54 @@ h2 {
   font-size: 0.82rem;
 }
 
+.search-field {
+  margin-bottom: 1rem;
+}
+
+.search-field > label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #526058;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.search-input-wrap {
+  position: relative;
+}
+
+.search-input-wrap input {
+  width: 100%;
+  padding: 0.75rem 4.25rem 0.75rem 1rem;
+  border: 1px solid #d2cfc5;
+  border-radius: 12px;
+  outline: none;
+  color: #1f2a24;
+  background: #f8f6f0;
+}
+
+.search-input-wrap input:focus {
+  border-color: #336c52;
+  box-shadow: 0 0 0 4px rgba(51, 108, 82, 0.14);
+}
+
+.search-clear {
+  position: absolute;
+  top: 50%;
+  right: 0.65rem;
+  padding: 0.25rem 0.4rem;
+  border: 0;
+  color: #336c52;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 800;
+  transform: translateY(-50%);
+}
+
+.search-clear[hidden] {
+  display: none;
+}
+
 .toolbar {
   gap: 0.35rem;
   margin-bottom: 1rem;
