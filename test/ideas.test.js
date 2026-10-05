@@ -1,6 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createIdea, deleteIdea, filterIdeas, toggleIdea } from "../src/ideas.js";
+import {
+  createIdea,
+  deleteIdea,
+  filterIdeas,
+  reorderIdeas,
+  toggleIdea,
+} from "../src/ideas.js";
 
 test("createIdea trims its title", () => {
   assert.deepEqual(createIdea("  Add search  ", "idea-1"), {
@@ -67,4 +73,57 @@ test("filterIdeas combines search with the status filter without changing ideas"
   assert.deepEqual(filterIdeas(ideas, "open", "search"), [ideas[0]]);
   assert.deepEqual(filterIdeas(ideas, "done", "search"), [ideas[1]]);
   assert.deepEqual(ideas, originalIdeas);
+});
+
+test("reorderIdeas moves an idea upward to the destination position", () => {
+  const ideas = [
+    { id: "one", title: "First", done: false },
+    { id: "two", title: "Second", done: true },
+    { id: "three", title: "Third", done: false },
+  ];
+
+  assert.deepEqual(reorderIdeas(ideas, "three", "one"), [
+    ideas[2],
+    ideas[0],
+    ideas[1],
+  ]);
+});
+
+test("reorderIdeas moves an idea downward to the destination position", () => {
+  const ideas = [
+    { id: "one", title: "First", done: false },
+    { id: "two", title: "Second", done: true },
+    { id: "three", title: "Third", done: false },
+  ];
+
+  assert.deepEqual(reorderIdeas(ideas, "one", "three"), [
+    ideas[1],
+    ideas[2],
+    ideas[0],
+  ]);
+});
+
+test("reorderIdeas returns a new collection without changing idea data or its input", () => {
+  const ideas = [
+    { id: "one", title: "First", done: false },
+    { id: "two", title: "Second", done: true },
+  ];
+  const originalIdeas = structuredClone(ideas);
+
+  const reordered = reorderIdeas(ideas, "two", "one");
+
+  assert.notStrictEqual(reordered, ideas);
+  assert.deepEqual(reordered, [ideas[1], ideas[0]]);
+  assert.deepEqual(ideas, originalIdeas);
+});
+
+test("reorderIdeas leaves the order unchanged for invalid and same-item moves", () => {
+  const ideas = [
+    { id: "one", title: "First", done: false },
+    { id: "two", title: "Second", done: true },
+  ];
+
+  assert.strictEqual(reorderIdeas(ideas, "one", "one"), ideas);
+  assert.strictEqual(reorderIdeas(ideas, "missing", "one"), ideas);
+  assert.strictEqual(reorderIdeas(ideas, "one", "missing"), ideas);
 });
